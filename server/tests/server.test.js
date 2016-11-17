@@ -16,6 +16,7 @@ describe('POST /todos', () => {
 
         request(app)
             .post('/todos')
+            .set('x-auth', users[0].tokens[0].token)
             .send({text})
             .expect(200)
             .expect((res) => {
@@ -39,6 +40,7 @@ describe('POST /todos', () => {
     it('should not create a new todo with invalid body', (done) => {
         request(app)
             .post('/todos')
+            .set('x-auth', users[0].tokens[0].token)
             .send({})
             .expect(400)
             .end((err, res) => {
@@ -60,6 +62,7 @@ describe('GET /todos', () => {
     it('should get all todos', (done) => {
         request(app)
             .get(`/todos/${todos[0]._id.toHexString()}`)
+            .set('x-auth', users[0].tokens[0].token)
             .expect(200)
             .expect((res) => {
                 expect(res.body.todo.text).toBe(todos[0].text);
@@ -73,9 +76,10 @@ describe('GET /todos/:id', () => {
     it('should return todo doc', (done) => {
         request(app)
             .get('/todos')
+            .set('x-auth', users[0].tokens[0].token)
             .expect(200)
             .expect((res) => {
-                expect(res.body.todos.length).toBe(2);
+                expect(res.body.todos.length).toBe(1);
             })
             .end(done);
     });
@@ -117,8 +121,6 @@ describe('DELETE /todos/:id', () => {
                     done();
                 }).catch((e) => done(e))
             });
-
-
     });
 
     it('should return 404 if todo not found', (done) => {
@@ -194,13 +196,11 @@ describe('GET /users/me', () => {
   })
 
   it('should return 401 if not authenticated', (done) => {
-
     request(app)
     .get('/users/me')
     .expect(401)
     .expect((res) => {
       expect(res.body).toEqual({});
-
     })
     .end(done);
   })
@@ -212,7 +212,6 @@ describe('POST /users', () => {
 it('should create a user', (done) => {
 var email = 'example@example.com';
 var password = '123mnb!';
-
 request(app)
 .post('/users')
 .send({email, password})
@@ -238,7 +237,6 @@ request(app)
 it('should return validation errors if request invalid', (done) => {
   var email = 'example';
   var password = '123mnb!';
-
   request(app)
   .post('/users')
   .send({email, password})
@@ -250,7 +248,6 @@ it('should return validation errors if request invalid', (done) => {
 it('should not create user if email in use', (done) => {
   var email = 'avaven@gmail.com';
   var password = '123mnb!';
-
   request(app)
   .post('/users')
   .send({email, password})
@@ -261,9 +258,7 @@ it('should not create user if email in use', (done) => {
 });
 
 describe('POST /users/login', () => {
-
   it('should log in user and return auth token', (done) => {
-
     request(app)
     .post('/users/login')
     .send({
@@ -289,7 +284,6 @@ describe('POST /users/login', () => {
   });
 
   it('should reject invalid token', (done) => {
-
     request(app)
     .post('/users/login')
     .send({
@@ -308,8 +302,31 @@ describe('POST /users/login', () => {
         done();
       }).catch((e) => done(e));
     });
-
   });
-
-
 });
+
+describe('DELETE /users/me/token', () => {
+
+it('should remove auth token on logout', (done) => {
+
+  request(app)
+  .delete('/users/me/token')
+  .set('x-auth', users[0].tokens[0].token)
+  .expect(200)
+  .end((err, res) => {
+    if(err){
+      return done(err);
+    }
+
+    User.findById(users[0]._id).then((user) => {
+      expect(user.tokens.length).toBe(0);
+      done();
+    }).catch((e) => {
+      done(e);
+    })
+  })
+})
+
+
+
+})
