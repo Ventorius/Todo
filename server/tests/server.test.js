@@ -31,9 +31,7 @@ describe('POST /todos', () => {
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
                     done();
-                }).catch((e) => {
-                    done(e)
-                });
+                }).catch((e) => done(e));
             });
     });
 
@@ -65,7 +63,7 @@ describe('GET /todos', () => {
             .set('x-auth', users[0].tokens[0].token)
             .expect(200)
             .expect((res) => {
-                expect(res.body.todo.text).toBe(todos[0].text);
+                expect(res.body.todo.length).toBe(1);
             })
             .end(done);
     })
@@ -274,7 +272,7 @@ describe('POST /users/login', () => {
         return done(err);
       }
       User.findById(users[1]._id).then((user) => {
-        expect(user.tokens[0]).toInclude({
+        expect(user.tokens[1]).toInclude({
           access: 'auth',
           token: res.headers['x-auth']
         });
@@ -298,7 +296,7 @@ describe('POST /users/login', () => {
         return done(err);
       }
       User.findById(users[1]._id).then((user) => {
-        expect(user.tokens.length).toBe(0);
+        expect(user.tokens.length).toBe(1);
         done();
       }).catch((e) => done(e));
     });
